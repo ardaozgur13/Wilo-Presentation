@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#F4F1EA" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <title>Burble — Concordia</title>
+    <meta name="description" content="Burble: su tesislerinin verisini yapay zekânın güvenebileceği veriye çeviriyoruz. Water AI Hackathon 2026 sunumu." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="stage"></div>
+
+    <!-- Metin katmanı -->
+    <div id="captions"></div>
+
+    <!-- Teknik çizim antet kutusu -->
+    <aside class="titleblock" aria-hidden="true">
+      <div><b>BURBLE</b><span>TERFİ İSTASYONU · MAKET</span></div>
+      <div><span>ÖLÇEK</span><b>1:50</b><span>PAFTA</span><b id="tb-sheet">01</b></div>
+    </aside>
+
+    <!-- Sunum kontrolleri -->
+    <div class="hud">
+      <span class="touch-hint" aria-hidden="true">dokun → ileri · sol kenar ← geri</span>
+      <button type="button" class="hud-fs ui" id="hud-fs" aria-label="Tam ekran">⛶</button>
+      <span class="hud-count" id="hud-count">1 / 10</span>
+      <div class="hud-bar"><i id="hud-bar"></i></div>
+    </div>
+    <div class="keys" aria-hidden="true">
+      <kbd>←</kbd><kbd>→</kbd> sahne · <kbd>F</kbd> tam ekran
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

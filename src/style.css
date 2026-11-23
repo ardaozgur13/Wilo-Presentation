@@ -1,0 +1,410 @@
+:root {
+  --paper: #f4f1ea;
+  --paper-2: #ebe6dc;
+  --ink: #2b2b2b;
+  --ink-2: #5a5750;
+  --line: #cfc8ba;
+  --teal: #1f8a7a;
+  --orange: #e07a2e;
+  --night: #1e1d1a;
+
+  --f-head: 'Space Grotesk', system-ui, sans-serif;
+  --f-body: 'Inter', system-ui, sans-serif;
+  --f-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --gutter: clamp(20px, 3.2vw, 56px);
+  /* çentikli telefonlarda güvenli alan */
+  --g-top: max(var(--gutter), env(safe-area-inset-top));
+  --g-bottom: max(var(--gutter), env(safe-area-inset-bottom));
+  --g-left: max(var(--gutter), env(safe-area-inset-left));
+  --g-right: max(var(--gutter), env(safe-area-inset-right));
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--f-body);
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+
+#stage { position: fixed; inset: 0; touch-action: none; } /* kaydırma/yakınlaştırma jestleri sunumu bozmasın */
+html, body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
+#stage canvas { display: block; }
+
+/* CSS2D etiket katmanı */
+.labels { position: absolute; inset: 0; pointer-events: none; }
+
+.tag-anchor { pointer-events: none; }
+.tag {
+  display: inline-block;
+  font: 500 10.5px/1 var(--f-mono);
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  background: rgba(244, 241, 234, 0.92);
+  border: 1px solid var(--ink);
+  padding: 3px 6px 3px;
+  white-space: nowrap;
+  transform: translateY(-14px);
+  position: relative;
+}
+.tag::after { /* kılavuz çizgisi */
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: 1px;
+  height: 10px;
+  background: var(--ink);
+  opacity: 0.6;
+}
+.tag.teal { border-color: var(--teal); color: var(--teal); }
+.tag.teal::after { background: var(--teal); }
+.tag.dim {
+  background: transparent;
+  border: none;
+  color: var(--ink-2);
+  transform: none;
+  font-size: 11px;
+  padding: 0 4px;
+}
+.tag.dim::after { display: none; }
+.tag.alert { border-color: var(--orange); color: var(--orange); }
+.tag.alert::after { background: var(--orange); }
+
+/* Sahne 3: etiketsiz ham değerler */
+.tag.raw {
+  border: 1px dashed var(--ink-2);
+  color: var(--ink-2);
+  background: rgba(244, 241, 234, 0.85);
+  font-size: 12px;
+  transform: none;
+}
+.tag.raw::after { display: none; }
+.tag.raw.key {
+  font-size: clamp(15px, 1.25vw, 21px);
+  color: var(--ink);
+  border: 1px solid var(--orange);
+  padding: 6px 10px;
+  box-shadow: 3px 3px 0 rgba(224, 122, 46, 0.25);
+}
+
+/* Sahne 5: durak kartları */
+.tag.stop {
+  font: 500 clamp(12px, 0.95vw, 15px)/1 var(--f-head);
+  letter-spacing: 0;
+  padding: 7px 10px;
+  color: var(--ink-2);
+  border-color: var(--line);
+  transition: color 0.5s, border-color 0.5s, background 0.5s;
+}
+.tag.stop b {
+  font: 500 11px/1 var(--f-mono);
+  margin-right: 8px;
+  padding: 2px 5px;
+  border: 1px solid currentColor;
+}
+.tag.stop.on { color: var(--paper); background: var(--teal); border-color: var(--teal); }
+.tag.stop.on::after { background: var(--teal); }
+
+/* Sahne 6: formül + değişkenler */
+.tag.formula {
+  background: none;
+  border: none;
+  transform: none;
+  padding: 0;
+  text-align: center;
+}
+.tag.formula::after { display: none; }
+.tag.formula .f-main {
+  display: block;
+  font: 600 clamp(44px, 5.2vw, 96px)/1 var(--f-head);
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.tag.formula .f-legend {
+  display: inline-block;
+  margin-top: 12px;
+  font: 400 12px/1 var(--f-mono);
+  color: var(--ink-2);
+  border-top: 1px solid var(--line);
+  padding-top: 8px;
+}
+.tag.var { border-color: var(--teal); color: var(--teal); background: rgba(244, 241, 234, 0.95); }
+.tag.var::after { background: var(--teal); }
+
+/* Sahne 8: WATER AI düğümü */
+.tag.big {
+  font: 600 clamp(16px, 1.4vw, 24px)/1 var(--f-head);
+  letter-spacing: 0.02em;
+  padding: 8px 12px;
+  background: var(--paper);
+}
+
+/* ---------- Metin (caption) ---------- */
+#captions { position: fixed; inset: 0; pointer-events: none; z-index: 5; }
+
+.caption {
+  position: absolute;
+  max-width: min(560px, 42vw);
+  color: var(--ink);
+}
+/* Okunabilirlik için yumuşak kağıt zemini */
+.caption::before {
+  content: '';
+  position: absolute;
+  inset: -48px -72px;
+  z-index: -1;
+  background: radial-gradient(closest-side, rgba(244, 241, 234, 0.92), rgba(244, 241, 234, 0));
+  transition: opacity 1.2s;
+}
+body.night .caption::before { opacity: 0; }
+.corner-bl { left: var(--g-left); bottom: calc(var(--g-bottom) + 28px); }
+.corner-tl { left: var(--g-left); top: var(--g-top); }
+.corner-br { right: var(--g-right); bottom: calc(var(--g-bottom) + 40px); text-align: right; }
+.corner-tr { right: var(--g-right); top: calc(var(--g-top) + 64px); text-align: right; }
+
+.caption .kicker {
+  font: 500 12px/1 var(--f-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+.corner-br .kicker, .corner-tr .kicker { justify-content: flex-end; }
+.caption .kicker .num {
+  color: var(--teal);
+  border: 1px solid currentColor;
+  padding: 3px 6px;
+}
+
+.caption h1 {
+  font: 600 clamp(34px, 4.2vw, 68px)/1.02 var(--f-head);
+  letter-spacing: -0.025em;
+  margin: 0 0 16px;
+}
+.caption h1.xl { font-size: clamp(64px, 10vw, 168px); letter-spacing: -0.045em; }
+.caption h1.m { font-size: clamp(30px, 3.4vw, 54px); }
+
+.caption p {
+  font: 400 clamp(16px, 1.35vw, 22px)/1.45 var(--f-body);
+  margin: 0 0 6px;
+  color: var(--ink);
+}
+.caption p.mono { font-family: var(--f-mono); font-size: clamp(14px, 1.1vw, 18px); }
+.caption .note {
+  display: inline-block;
+  margin-top: 14px;
+  font: 400 12px/1.3 var(--f-mono);
+  color: var(--ink-2);
+  border-top: 1px solid var(--line);
+  padding-top: 8px;
+}
+
+.caption ul.list {
+  list-style: none;
+  padding: 0;
+  margin: 6px 0 0;
+  font: 400 clamp(15px, 1.25vw, 20px)/1.4 var(--f-body);
+}
+.caption ul.list li {
+  display: flex;
+  gap: 14px;
+  align-items: baseline;
+  padding: 9px 0;
+  border-top: 1px solid var(--line);
+}
+.caption ul.list li:last-child { border-bottom: 1px solid var(--line); }
+.caption ul.list li .k {
+  font: 500 12px/1 var(--f-mono);
+  color: var(--teal);
+  min-width: 22px;
+}
+.caption ul.list li small {
+  display: block;
+  color: var(--ink-2);
+  font-size: 0.82em;
+  margin-top: 2px;
+}
+
+/* Adımlı listeler (sahne 5) */
+.caption ul.steps li { opacity: 0.28; transition: opacity 0.5s, color 0.5s; }
+.caption ul.steps li.on { opacity: 1; }
+.caption ul.steps li.current .k { background: var(--teal); color: var(--paper); padding: 3px 5px; }
+.caption .loop-line {
+  margin-top: 14px;
+  font: 500 14px/1.4 var(--f-mono);
+  color: var(--teal);
+  opacity: 0;
+  transition: opacity 0.6s;
+}
+.caption .loop-line.on { opacity: 1; }
+
+/* Takım */
+.team { margin-top: 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; }
+.team div { border-top: 1px solid var(--line); padding: 10px 0; }
+.team b { display: block; font: 500 clamp(15px, 1.2vw, 19px)/1.3 var(--f-head); }
+.team span { font: 400 12px/1.3 var(--f-mono); color: var(--ink-2); }
+
+/* ---------- Gece modu ---------- */
+body.night .caption, body.night .caption p { color: var(--paper); }
+body.night .caption .kicker, body.night .caption .note { color: #a8a294; }
+body.night .titleblock { color: #a8a294; border-color: #4a4740; }
+body.night .titleblock b { color: var(--paper); }
+body.night .hud-count, body.night .keys { color: #a8a294; }
+body.night .hud-bar { background: #3a3832; }
+body.night kbd { border-color: #4a4740; color: #a8a294; }
+.titleblock, .hud-count, .keys, .caption, .caption p { transition: color 1.2s, border-color 1.2s; }
+
+/* ---------- Antet ---------- */
+.titleblock {
+  position: fixed;
+  top: var(--gutter);
+  right: var(--gutter);
+  z-index: 4;
+  font: 400 10.5px/1 var(--f-mono);
+  letter-spacing: 0.06em;
+  color: var(--ink-2);
+  border: 1px solid var(--ink-2);
+  pointer-events: none;
+}
+.titleblock > div { display: flex; border-top: 1px solid currentColor; }
+.titleblock > div:first-child { border-top: none; }
+.titleblock span, .titleblock b { padding: 6px 9px; border-left: 1px solid currentColor; }
+.titleblock > div > :first-child { border-left: none; }
+.titleblock b { color: var(--ink); font-weight: 500; }
+
+/* ---------- HUD ---------- */
+.hud {
+  position: fixed;
+  right: var(--g-right);
+  bottom: var(--g-bottom);
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  pointer-events: none;
+}
+.hud-count { font: 500 12px/1 var(--f-mono); color: var(--ink-2); min-width: 48px; text-align: right; }
+.hud-bar { width: 160px; height: 2px; background: var(--line); position: relative; overflow: hidden; }
+.hud-bar i {
+  position: absolute; left: 0; top: 0; bottom: 0;
+  width: 10%;
+  background: var(--teal);
+  transition: width 0.6s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.keys {
+  position: fixed;
+  left: var(--gutter);
+  bottom: var(--gutter);
+  z-index: 4;
+  font: 400 11px/1 var(--f-mono);
+  color: var(--ink-2);
+  opacity: 0.7;
+  pointer-events: none;
+}
+kbd {
+  font: inherit;
+  border: 1px solid var(--line);
+  padding: 2px 5px;
+  margin-right: 3px;
+}
+
+/* Etkileşimli sahnelerde UI tıklanabilir */
+.ui { pointer-events: auto; }
+
+/* ---------- Dokunmatik kontroller ---------- */
+.touch-hint, .hud-fs { display: none; }
+.hud-fs {
+  pointer-events: auto;
+  font: 400 15px/1 var(--f-mono);
+  color: var(--ink-2);
+  background: transparent;
+  border: 1px solid var(--line);
+  width: 30px;
+  height: 26px;
+  padding: 0;
+  cursor: pointer;
+}
+body.night .hud-fs { color: #a8a294; border-color: #4a4740; }
+@media (pointer: coarse) {
+  .keys { display: none; }
+  body.fs-ok .hud-fs { display: inline-block; }
+  /* ipucu yalnızca açılışta */
+  body[data-scene='acilis'] .touch-hint {
+    display: inline;
+    font: 400 10.5px/1 var(--f-mono);
+    color: var(--ink-2);
+    letter-spacing: 0.02em;
+  }
+}
+
+/* ---------- Telefon (dikey) ---------- */
+@media (max-width: 760px) {
+  .caption { max-width: calc(100vw - var(--g-left) - var(--g-right)); }
+  .corner-br, .corner-tr { text-align: left; left: var(--g-left); right: auto; }
+  .corner-br .kicker, .corner-tr .kicker { justify-content: flex-start; }
+  .titleblock, .keys { display: none; }
+  .hud { gap: 10px; }
+  .hud-bar { width: 72px; }
+  body[data-scene='acilis'] .touch-hint { max-width: 150px; line-height: 1.3; }
+
+  .caption h1 { font-size: clamp(28px, 8.5vw, 40px); margin-bottom: 10px; }
+  .caption h1.xl { font-size: clamp(56px, 19vw, 84px); }
+  .caption h1.m { font-size: clamp(26px, 7.5vw, 34px); }
+  .caption p { font-size: 15px; }
+  .caption .kicker { margin-bottom: 12px; font-size: 11px; }
+  .caption ul.list { font-size: 14.5px; }
+  .caption ul.list li { padding: 7px 0; gap: 10px; }
+  /* Dört adım: yalnızca yanan/geçerli adımın açıklaması */
+  .caption ul.steps li small { display: none; }
+  .caption ul.steps li.current small { display: block; }
+  .caption ul.steps li { padding: 6px 0; }
+  .caption .loop-line { font-size: 12px; margin-top: 8px; }
+  .team { grid-template-columns: 1fr 1fr; gap: 0 16px; }
+  .team b { font-size: 15px; }
+
+  /* 3D etiketleri küçült ki birbirini kapatmasın */
+  .tag { font-size: 8.5px; padding: 2px 4px; transform: translateY(-10px); }
+  .tag::after { height: 7px; }
+  .tag.dim { font-size: 9px; }
+  .tag.raw { font-size: 9.5px; }
+  .tag.raw.key { font-size: 12px; padding: 4px 6px; }
+  .tag.stop { font-size: 10px; padding: 4px 6px; }
+  .tag.stop b { margin-right: 4px; font-size: 9px; }
+  .tag.formula .f-main { font-size: 34px; }
+  .tag.formula .f-legend { font-size: 9.5px; }
+  .tag.big { font-size: 13px; padding: 5px 8px; }
+}
+
+/* ---------- Telefon (yatay) / çok kısa pencereler ---------- */
+@media (max-height: 520px) {
+  .titleblock, .keys { display: none; }
+  .caption { max-width: min(48vw, 460px); }
+  .corner-bl { bottom: calc(var(--g-bottom) + 18px); }
+  .caption h1 { font-size: 26px; margin-bottom: 6px; }
+  .caption h1.xl { font-size: 54px; }
+  .caption h1.m { font-size: 24px; }
+  .caption p { font-size: 13.5px; }
+  .caption .kicker { margin-bottom: 8px; font-size: 10.5px; }
+  .caption .note { margin-top: 6px; }
+  .caption ul.list { font-size: 13px; }
+  .caption ul.list li { padding: 4px 0; }
+  .caption ul.steps li small { display: none; }
+  .caption ul.steps li.current small { display: block; }
+  .team b { font-size: 14px; }
+  .team div { padding: 5px 0; }
+  .hud-bar { width: 80px; }
+  .tag { font-size: 8.5px; padding: 2px 4px; }
+  .tag.formula .f-main { font-size: 32px; }
+  .tag.raw.key { font-size: 12px; }
+}
